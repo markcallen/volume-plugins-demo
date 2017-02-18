@@ -194,6 +194,18 @@ CONTAINER ID        IMAGE                            COMMAND                  CR
 vagrant@node2:~$ exit
 ```
 
+## flockerctl
+
+List Drives
+````
+flockerctl --control-service=172.16.78.250 --user=plugin --certs-path=/etc/flocker list
+````
+
+List Nodes
+````
+flockerctl --control-service=172.16.78.250 --user=plugin --certs-path=/etc/flocker list-nodes
+````
+
 ## Conclusion
 
 Using this very basic demo, we were able to show that the plugin mechanism in Docker 1.8 is able to integrate with both Flocker and Docker Compose allowing us to migrate a stateful web application from one server to another.
