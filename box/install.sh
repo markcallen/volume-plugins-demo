@@ -10,6 +10,9 @@ cp /vagrant/apt-pref /etc/apt/preferences.d/buildbot-700
 apt-get update
 apt-get -y --allow-unauthenticated install clusterhq-flocker-node clusterhq-flocker-docker-plugin
 
+# install compose
+apt-get install -y docker-compose
+
 # install aufs
 apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
 
