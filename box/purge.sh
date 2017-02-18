@@ -4,9 +4,8 @@
 #  - http://vstone.eu/reducing-vagrant-box-size/
 #  - https://github.com/mitchellh/vagrant/issues/343
 
-aptitude -y purge ri
-aptitude -y purge installation-report landscape-common wireless-tools wpasupplicant ubuntu-serverguide
-apt-get purge -y linux-image-3.0.0-12-generic-pae
+# Setup insecure auth
+wget -qO- http://github.com/mitchellh/vagrant/raw/master/keys/vagrant.pub >> /home/ubuntu/.ssh/authorized_keys
 
 # Remove APT cache
 apt-get clean -y
