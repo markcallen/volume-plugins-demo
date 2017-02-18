@@ -1,6 +1,6 @@
 ## Volume Plugins Demo
 
-Migrating Docker data volume using new Docker 1.8 Volumes Plugin
+Migrating Docker data volume using Docker 1.13 and Flocker
 
 [![asciicast](https://asciinema.org/a/24835.png)](https://asciinema.org/a/24835)
 
@@ -65,32 +65,45 @@ $ vagrant up
 
 ### Step 2: Check Docker version
 
-We are then going to confirm that we are actually running Docker 1.8 and that it is the non-experimental version:
+We are then going to confirm that we are actually running Docker 1.13
 
 ```bash
 $ vagrant ssh node1
 vagrant@node1:~$ docker version
-
 Client:
- Version:      1.8.0-dev
- API version:  1.21
- Go version:   go1.4.2
- Git commit:   1027247
- Built:        Mon Aug  3 18:04:07 UTC 2015
+ Version:      1.13.1
+ API version:  1.26
+ Go version:   go1.7.5
+ Git commit:   092cba3
+ Built:        Wed Feb  8 06:50:14 2017
  OS/Arch:      linux/amd64
 
 Server:
- Version:      1.8.0-dev
- API version:  1.21
- Go version:   go1.4.2
- Git commit:   1027247
- Built:        Mon Aug  3 18:04:07 UTC 2015
+ Version:      1.13.1
+ API version:  1.26 (minimum version 1.12)
+ Go version:   go1.7.5
+ Git commit:   092cba3
+ Built:        Wed Feb  8 06:50:14 2017
  OS/Arch:      linux/amd64
-
+ Experimental: true
 vagrant@node1:~$ exit
 ```
 
-NOTE - the version of this binary is `1.8.0-dev` because this blog post was put together a few days before the official release.
+NOTE - using experimental so that it supports docker stacks (docker compose v3 for swarm)
+
+
+### Step 2a: Make sure all flocker nodes are connected
+
+List Nodes
+```bash
+vagrant ssh node1
+ubuntu@node1:~$ flockerctl --control-service=172.16.78.250 --user=plugin --certs-path=/etc/flocker list-nodes
+SERVER     ADDRESS       
+8a92f64e   172.16.78.250 
+c109798f   172.16.78.251 
+
+ubuntu@node1:~$ exit
+```
 
 ### Step 3: Write some data to node1
 
@@ -103,6 +116,17 @@ vagrant@node1:~$ docker run --rm \
     -v simple:/data \
     busybox sh -c "echo hello > /data/file.txt"
 vagrant@node1:~$ exit
+```
+
+### Step 3a: Check the flocker volume
+
+```bash
+vagrant ssh node1
+ubuntu@node1:~$ flockerctl --control-service=172.16.78.250 --user=plugin --certs-path=/etc/flocker list
+DATASET                                SIZE     METADATA      STATUS         SERVER                   
+644d9212-8cbc-4845-9537-a4d687f3244c   75.00G   name=simple   attached ✅   c109798f (172.16.78.251) 
+
+ubuntu@node1:~$ exit
 ```
 
 ### Step 4: Read the data from node2
@@ -194,21 +218,10 @@ CONTAINER ID        IMAGE                            COMMAND                  CR
 vagrant@node2:~$ exit
 ```
 
-## flockerctl
-
-List Drives
-````
-flockerctl --control-service=172.16.78.250 --user=plugin --certs-path=/etc/flocker list
-````
-
-List Nodes
-````
-flockerctl --control-service=172.16.78.250 --user=plugin --certs-path=/etc/flocker list-nodes
-````
 
 ## Conclusion
 
-Using this very basic demo, we were able to show that the plugin mechanism in Docker 1.8 is able to integrate with both Flocker and Docker Compose allowing us to migrate a stateful web application from one server to another.
+Using this very basic demo, we were able to show that the plugin mechanism in Docker 1.13 is able to integrate with both Flocker and Docker Compose allowing us to migrate a stateful web application from one server to another.
 
 You can read more about Flocker at the [ClusterHQ](https://clusterhq.com) website where you can try a free online version with no setup!
 
