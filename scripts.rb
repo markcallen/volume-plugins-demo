@@ -1,9 +1,3 @@
-def add_vagrant_group()
-    $script = <<SCRIPT
-usermod -a -G docker vagrant
-SCRIPT
-end
-
 def create_zfs_pool()
     $script = <<SCRIPT
 mkdir -p /var/opt/flocker
@@ -46,13 +40,10 @@ end
 
 def flocker_control_config()
     $script = <<SCRIPT
-cat <<EOF > /etc/init/flocker-control.override
-start on runlevel [2345]
-stop on runlevel [016]
-EOF
 echo 'flocker-control-api       4523/tcp                        # Flocker Control API port' >> /etc/services
 echo 'flocker-control-agent     4524/tcp                        # Flocker Control Agent port' >> /etc/services
-service flocker-control restart
+systemctl enable flocker-control
+systemctl start flocker-control
 ufw allow flocker-control-api
 ufw allow flocker-control-agent
 SCRIPT
@@ -71,26 +62,26 @@ cat <<EOF > /etc/flocker/agent.yml
    "backend": "zfs"
    "pool": "flocker"
 EOF
-service flocker-container-agent restart
-service flocker-dataset-agent restart
+systemctl enable flocker-dataset-agent
+systemctl start flocker-dataset-agent
+systemctl enable flocker-container-agent
+systemctl start flocker-container-agent
 SCRIPT
     return $script
 end
 
-def flocker_plugin_config(control_ip, node_ip)
+def flocker_plugin_config
     $script = <<SCRIPT
-cat <<EOF > /etc/init/flocker-docker-plugin.conf
-# flocker-plugin - flocker-docker-plugin job file
-
-description "Flocker Plugin service"
-author "ClusterHQ <support@clusterhq.com>"
-
-respawn
-env FLOCKER_CONTROL_SERVICE_BASE_URL=https://#{control_ip}:4523/v1
-env MY_NETWORK_IDENTITY=#{node_ip}
-exec /usr/local/bin/flocker-docker-plugin
-EOF
-service flocker-docker-plugin restart
+systemctl enable flocker-docker-plugin
+systemctl start flocker-docker-plugin
+systemctl restart docker
 SCRIPT
     return $script
+end
+
+def install_flockerctl
+  $script = <<SCRIPT
+curl -sSL https://get.flocker.io |sh
+SCRIPT
+  return $script
 end
